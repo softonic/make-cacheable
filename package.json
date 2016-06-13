@@ -1,6 +1,6 @@
 {
   "name": "make-cacheable",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": "Rubén Norte <ruben.norte@softonic.com>",
   "contributors": [
     "Marc Mignonsin <marc.mignonsin@softonic.com>"
@@ -23,7 +23,7 @@
     "pretest": "npm run lint",
     "test": "jasmine",
     "prebuild": "npm run test",
-    "build": "rm -rf lib && babel es -d lib",
+    "build": "rm -rf lib && babel es -d lib --source-maps",
     "prerelease": "npm run build",
     "release": "npm version -m \"New version: %s\"",
     "postrelease": "npm run push && npm publish",
@@ -41,10 +41,5 @@
     "eslint": "^1.10.3",
     "eslint-config-airbnb": "^3.1.0",
     "jasmine": "^2.4.1"
-  },
-  "babel": {
-    "presets": [
-      "es2015"
-    ]
   }
 }
