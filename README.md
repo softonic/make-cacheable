@@ -13,8 +13,11 @@ npm install make-cacheable
 ## Usage
 
 ```js
+// CommonJS
+// const makeCacheable = require('make-cacheable');
+
 // ES6
-import makeCacheable from 'make-cacheable';
+import makeCacheable from 'make-cacheable/es';
 
 import catbox from 'catbox';
 
