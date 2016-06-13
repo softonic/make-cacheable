@@ -1,0 +1,43 @@
+{
+  "extends": "eslint-config-airbnb/base",
+  //"parser":"babel-eslint",
+  "rules": {
+  /**
+   * ES6
+   */
+    "no-var": 0,                                  // http://eslint.org/docs/rules/no-var
+    "prefer-const": 0,                            // http://eslint.org/docs/rules/prefer-const
+    /**
+     * Strict mode
+     */
+    // Webpack inserts "use strict"; for us
+    "strict": [1, "global"],                      // http://eslint.org/docs/rules/strict
+    /**
+     * Possible errors
+     */
+    "comma-dangle": 0,
+    /**
+     * Best practices
+     */
+    "complexity": [1, 7],                         // http://eslint.org/docs/rules/complexity
+    "dot-notation": 0,                            // http://eslint.org/docs/rules/dot-notation
+    "no-param-reassign": 0,                       // http://eslint.org/docs/rules/no-param-reassign
+    "vars-on-top": 0,                             // http://eslint.org/docs/rules/vars-on-top
+    /**
+     * Variables
+     */
+    "no-unused-vars": 1,
+    /**
+     * Style
+     */
+    "func-names": 0,                              // http://eslint.org/docs/rules/func-names
+    "indent": 1,                                  // http://eslint.org/docs/rules/indent.html
+    "no-multiple-empty-lines": 1,                 // http://eslint.org/docs/rules/no-multiple-empty-lines
+    "padded-blocks": 0,                           // http://eslint.org/docs/rules/padded-blocks
+    "spaced-comment": 1,                          // http://eslint.org/docs/rules/spaced-comment
+    /**
+     * Legacy
+     */
+    "max-len": [1, 100, 2, {"ignoreUrls": true}]  // http://eslint.org/docs/rules/max-len
+  }
+}
