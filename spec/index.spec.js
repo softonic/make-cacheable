@@ -1,4 +1,4 @@
-import cacheable from '../es/index';
+import makeCacheable from '../es/index';
 import getKeyGenerator from '../es/getKeyGenerator';
 
 /* HELPERS */
@@ -47,14 +47,14 @@ function generateDefaultOptions() {
 
 /* TEST */
 
-describe('cacheable(method, options)', () => {
+describe('makeCacheable(method, options)', () => {
   it('should be a function', () => {
-    expect(cacheable).toEqual(jasmine.any(Function));
+    expect(makeCacheable).toEqual(jasmine.any(Function));
   });
 
   it('should return a decorated function', () => {
     const fn = () => {};
-    const cachedFn = cacheable(fn, generateDefaultOptions());
+    const cachedFn = makeCacheable(fn, generateDefaultOptions());
     expect(cachedFn).toEqual(jasmine.any(Function));
     expect(cachedFn).not.toBe(fn);
   });
@@ -65,7 +65,7 @@ describe('cacheable(method, options)', () => {
       const { cacheClient } = options;
 
       const fn = () => {};
-      const cachedFn = cacheable(fn, options);
+      const cachedFn = makeCacheable(fn, options);
 
       cachedFn('foo', 'bar');
 
@@ -80,7 +80,7 @@ describe('cacheable(method, options)', () => {
 
     it('should return a promise', () => {
       const options = generateDefaultOptions();
-      const cachedFn = cacheable(() => {}, options);
+      const cachedFn = makeCacheable(() => {}, options);
       const returnValue = cachedFn();
       expect(returnValue).toEqual(jasmine.any(Promise));
     });
@@ -93,7 +93,7 @@ describe('cacheable(method, options)', () => {
         options.cacheClient = createFakeCacheClient({ cached: expectedResult });
 
         const fn = () => {};
-        const cachedFn = cacheable(fn, options);
+        const cachedFn = makeCacheable(fn, options);
 
         const returnValue = cachedFn('foo', 'bar');
 
@@ -113,7 +113,7 @@ describe('cacheable(method, options)', () => {
           done();
         };
 
-        const cachedFn = cacheable(fn, options);
+        const cachedFn = makeCacheable(fn, options);
         cachedFn('foo', 'bar');
       });
 
@@ -122,7 +122,7 @@ describe('cacheable(method, options)', () => {
 
         const expectedResult = { foo: 'bar' };
         const fn = () => expectedResult;
-        const cachedFn = cacheable(fn, options);
+        const cachedFn = makeCacheable(fn, options);
 
         const returnValue = cachedFn('foo', 'bar');
         returnValue.then(result => {
@@ -151,7 +151,7 @@ describe('cacheable(method, options)', () => {
           }
         });
 
-        const cachedFn = cacheable(fn, options);
+        const cachedFn = makeCacheable(fn, options);
         cachedFn('foo', 'bar');
       });
     });

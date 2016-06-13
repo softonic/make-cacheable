@@ -16,7 +16,7 @@ import getTTLGenerator from './getTTLGenerator';
  *                                  Defaults to a function that generates a hash from the arguments.
  * @return {Function}
  */
-export default function cacheable(fn, options) {
+export default function makeCacheable(fn, options) {
   const { cacheClient, segment } = options;
 
   const generateTtl = getTTLGenerator(options);

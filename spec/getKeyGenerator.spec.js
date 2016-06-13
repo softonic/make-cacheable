@@ -1,7 +1,7 @@
 import objectHash from 'object-hash';
 import getKeyGenerator from '../es/getKeyGenerator';
 
-describe('cacheable.getKeyGenerator({ key } = {})', () => {
+describe('getKeyGenerator({ key } = {})', () => {
   describe('when key is a function', () => {
     it('should return a function', () => {
       const generator = getKeyGenerator({

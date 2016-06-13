@@ -1,6 +1,6 @@
 import getTTLGenerator from '../es/getTTLGenerator';
 
-describe('cacheable.getTTLGenerator({ ttl, ttlRandomFactor })', () => {
+describe('getTTLGenerator({ ttl, ttlRandomFactor })', () => {
   it('should return a function', () => {
     expect(getTTLGenerator({ ttl: 100, ttlRandomFactor: 0.1 })).toEqual(jasmine.any(Function));
   });
