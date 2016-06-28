@@ -1,43 +1,37 @@
 {
-  "extends": "eslint-config-airbnb/base",
-  //"parser":"babel-eslint",
+  "extends": [
+    "airbnb-base",
+    "plugin:jasmine/recommended"
+  ],
+  "plugins": [
+    "jasmine"
+  ],
   "rules": {
-  /**
-   * ES6
-   */
-    "no-var": 0,                                  // http://eslint.org/docs/rules/no-var
-    "prefer-const": 0,                            // http://eslint.org/docs/rules/prefer-const
-    /**
-     * Strict mode
-     */
-    // Webpack inserts "use strict"; for us
-    "strict": [1, "global"],                      // http://eslint.org/docs/rules/strict
-    /**
-     * Possible errors
-     */
-    "comma-dangle": 0,
-    /**
-     * Best practices
-     */
-    "complexity": [1, 7],                         // http://eslint.org/docs/rules/complexity
-    "dot-notation": 0,                            // http://eslint.org/docs/rules/dot-notation
-    "no-param-reassign": 0,                       // http://eslint.org/docs/rules/no-param-reassign
-    "vars-on-top": 0,                             // http://eslint.org/docs/rules/vars-on-top
-    /**
-     * Variables
-     */
-    "no-unused-vars": 1,
-    /**
-     * Style
-     */
-    "func-names": 0,                              // http://eslint.org/docs/rules/func-names
-    "indent": 1,                                  // http://eslint.org/docs/rules/indent.html
-    "no-multiple-empty-lines": 1,                 // http://eslint.org/docs/rules/no-multiple-empty-lines
-    "padded-blocks": 0,                           // http://eslint.org/docs/rules/padded-blocks
-    "spaced-comment": 1,                          // http://eslint.org/docs/rules/spaced-comment
-    /**
-     * Legacy
-     */
-    "max-len": [1, 100, 2, {"ignoreUrls": true}]  // http://eslint.org/docs/rules/max-len
+    // Jasmine
+    "jasmine/no-spec-dupes": ["warn", "branch"],
+    "jasmine/no-suite-dupes":  ["warn", "branch"],
+
+    // Best practices
+    "valid-jsdoc": ["warn", {
+      "requireReturn": false,
+      "requireParamDescription": false,
+      "requireReturnDescription": false,
+      "prefer": {
+        "returns": "return",
+        "params": "param"
+      }
+    }],
+    "complexity": ["warn", 7], // Warn about excessive complexity
+    "no-param-reassign": ["error", { "props": false }], // To enable request.params.something = ...;
+    "no-underscore-dangle": ["error", { "allowAfterThis": true }], // To enable this._p = 'value';
+
+    // Style
+    "object-shorthand": ["error", "always", { "avoidQuotes": true }],
+    "quote-props": ["error", "consistent"], // All quotes or no quotes in a single object
+    "comma-dangle": ["warn", "never"], // Disallow trailing comma in the last element of a list
+    "padded-blocks": "off", // Allow spaces at the beginning of blocks
+    "newline-per-chained-call": "off", // Allow chaining in a single line: Joi.string().required()
+    "consistent-return": "off", // Allow if (error) { return ... } and no final return
+    "arrow-body-style": "off" // Allow arrow functions with only a return statement
   }
 }
