@@ -19,7 +19,7 @@
     "index.js"
   ],
   "scripts": {
-    "lint": "eslint es/**/*.js tests/unit/index.js tests/unit/specs/**/*.spec.js",
+    "lint": "eslint es/**/*.js spec/**/*.spec.js",
     "pretest": "npm run lint",
     "test": "jasmine",
     "prebuild": "npm run test",
