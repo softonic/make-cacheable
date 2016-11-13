@@ -8,10 +8,10 @@
   "description": "Decorates functions to make them cacheable with Catbox",
   "license": "Apache-2.0",
   "main": "index.js",
-  "homepage": "https://stash.redtonic/projects/NODE/repos/make-cacheable",
+  "homepage": "https://github.com/softonic/make-cacheable",
   "repository": {
     "type": "git",
-    "url": "ssh://git@stash.redtonic:7999/projects/NODE/repos/make-cacheable.git"
+    "url": "git+https://github.com/softonic/make-cacheable.git"
   },
   "files": [
     "es",
