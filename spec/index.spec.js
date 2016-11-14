@@ -22,8 +22,10 @@ function createFakeCacheClient({ fakeCacheGet, fakeCacheSet, cached } = {}) {
   cacheClient.validateSegmentName.and.returnValue(null);
 
   const cachedValue = cached ? { item: cached } : cached;
+  /* eslint-disable no-param-reassign */
   fakeCacheGet = fakeCacheGet || ((key, callback) => callback(null, cachedValue));
   fakeCacheSet = fakeCacheSet || ((key, value, ttl, callback) => callback());
+  /* eslint-enable */
   const fakeCacheDrop = (key, callback) => callback();
 
   cacheClient.get.and.callFake(fakeCacheGet);
