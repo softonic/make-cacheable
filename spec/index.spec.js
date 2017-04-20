@@ -54,14 +54,20 @@ describe('makeCacheable(method, options)', () => {
     expect(makeCacheable).toEqual(jasmine.any(Function));
   });
 
-  it('should return a decorated function', () => {
+  it('should return a cached function', () => {
     const fn = () => {};
     const cachedFn = makeCacheable(fn, generateDefaultOptions());
     expect(cachedFn).toEqual(jasmine.any(Function));
     expect(cachedFn).not.toBe(fn);
   });
 
-  describe('the decorated function', () => {
+  describe('the cached function function', () => {
+    it('should have a setCached method', () => {
+      const fn = () => {};
+      const cachedFn = makeCacheable(fn, generateDefaultOptions());
+      expect(cachedFn.setCached).toEqual(jasmine.any(Function));
+    });
+
     it('should check if the value is cached', () => {
       const options = generateDefaultOptions();
       const { cacheClient } = options;
@@ -155,6 +161,66 @@ describe('makeCacheable(method, options)', () => {
 
         const cachedFn = makeCacheable(fn, options);
         cachedFn('foo', 'bar');
+      });
+    });
+
+    describe('setCached(args, value)', () => {
+      it('should set the value in the cache with the same configuration', (done) => {
+        const fn = () => {};
+
+        const options = generateDefaultOptions();
+        options.cacheClient = createFakeCacheClient({
+          fakeCacheSet(key, value, ttl) {
+            const expectedKey = getKeyGenerator(options)({ foo: 'bar' }, 123);
+
+            expect(key).toEqual({
+              segment: options.segment,
+              id: expectedKey
+            });
+            expect(value).toEqual({ id: 'softonic' });
+            expect(ttl).toBe(options.ttl);
+            done();
+          }
+        });
+
+        const cachedFn = makeCacheable(fn, options);
+
+        cachedFn.setCached([{ foo: 'bar' }, 123], { id: 'softonic' });
+      });
+
+      it('should return a promise that resolves when the value has been cached', (done) => {
+        const fn = () => {};
+
+        const options = generateDefaultOptions();
+        options.cacheClient = createFakeCacheClient({
+          fakeCacheSet(key, value, ttl, callback) {
+            callback();
+          }
+        });
+
+        const cachedFn = makeCacheable(fn, options);
+
+        cachedFn.setCached([{ foo: 'bar' }, 123], { id: 'softonic' }).then(done, done.fail);
+      });
+
+      it('should return a promise that rejects when with any error caching the value', (done) => {
+        const fn = () => {};
+
+        const cacheError = new Error('Cache error');
+
+        const options = generateDefaultOptions();
+        options.cacheClient = createFakeCacheClient({
+          fakeCacheSet(key, value, ttl, callback) {
+            callback(cacheError);
+          }
+        });
+
+        const cachedFn = makeCacheable(fn, options);
+
+        cachedFn.setCached([{ foo: 'bar' }, 123], { id: 'softonic' }).then(done.fail, (error) => {
+          expect(error).toBe(cacheError);
+          done();
+        });
       });
     });
   });
