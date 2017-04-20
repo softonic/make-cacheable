@@ -31,7 +31,7 @@ export default function makeCacheable(fn, options) {
     generateTimeout: false
   }, cacheClient, segment);
 
-  return function tryCached(...args) {
+  function cachedFunction(...args) {
     return new Promise((resolve, reject) => {
       const id = generateKey(...args);
       policy.get({ id, args }, (err, value) => {
@@ -42,5 +42,20 @@ export default function makeCacheable(fn, options) {
         resolve(value);
       });
     });
+  }
+
+  cachedFunction.setCached = (args, value) => {
+    return new Promise((resolve, reject) => {
+      const key = {
+        segment,
+        id: generateKey(...args)
+      };
+      const ttl = generateTtl(args);
+      cacheClient.set(key, value, ttl, (error) => {
+        return error ? reject(error) : resolve();
+      });
+    });
   };
+
+  return cachedFunction;
 }
