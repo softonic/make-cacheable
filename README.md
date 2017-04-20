@@ -41,6 +41,11 @@ const cachedFunction = makeCacheable(hardToComputeFunction, {
 cachedFunction(param1, param2).then(result => {
   // Cached!
 });
+
+// You can also cache values on demand
+cachedFunction.setCached([param1, param2], value).then(() => {
+  // Cached!
+});
 ```
 
 ## Testing
