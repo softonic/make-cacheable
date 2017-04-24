@@ -28,7 +28,9 @@ export default function makeCacheable(fn, options) {
       const ttl = generateTtl(...args);
       wrapped.then(result => next(null, result, ttl), next);
     },
-    generateTimeout: false
+    generateTimeout: false,
+    // An error in the generate function does NOT remove the value from cache
+    dropOnError: false
   }, cacheClient, segment);
 
   function cachedFunction(...args) {
