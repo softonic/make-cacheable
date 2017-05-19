@@ -93,6 +93,68 @@ describe('makeCacheable(method, options)', () => {
       expect(returnValue).toEqual(jasmine.any(Promise));
     });
 
+    describe('when passing a `regenerateIf` option', () => {
+      it('should be called with the received arguments', () => {
+        const options = generateDefaultOptions();
+        options.regenerateIf = jasmine.createSpy('regenerateIf');
+
+        const expectedResult = { foo: 'bar' };
+        options.cacheClient = createFakeCacheClient({ cached: expectedResult });
+
+        const fn = () => {};
+        const cachedFn = makeCacheable(fn, options);
+
+        const args = [1, 'foo'];
+        cachedFn(...args);
+
+        expect(options.regenerateIf).toHaveBeenCalledWith(...args);
+      });
+
+      describe('when it returns true', () => {
+        it('should drop the item from the cache', done => {
+          const options = generateDefaultOptions();
+          options.regenerateIf = () => true;
+
+          const expectedResult = { foo: 'bar' };
+          options.cacheClient = createFakeCacheClient({ cached: expectedResult });
+
+          const fn = () => {};
+          const cachedFn = makeCacheable(fn, options);
+
+          const key = getKeyGenerator(options)('foo', 'bar');
+          const returnValue = cachedFn('foo', 'bar');
+
+          returnValue.then(() => {
+            expect(options.cacheClient.drop).toHaveBeenCalledWith(
+              { segment: options.segment, id: key },
+              jasmine.any(Function)
+            );
+            done();
+          }, done.fail);
+        });
+      });
+
+      describe('when it returns false', () => {
+        it('should NOT drop the item from the cache', done => {
+          const options = generateDefaultOptions();
+          options.regenerateIf = () => false;
+
+          const expectedResult = { foo: 'bar' };
+          options.cacheClient = createFakeCacheClient({ cached: expectedResult });
+
+          const fn = () => {};
+          const cachedFn = makeCacheable(fn, options);
+
+          const returnValue = cachedFn('foo', 'bar');
+
+          returnValue.then(() => {
+            expect(options.cacheClient.drop).not.toHaveBeenCalled();
+            done();
+          }, done.fail);
+        });
+      });
+    });
+
     describe('when the value IS cached', () => {
       it('should return a promise that resolves with it', done => {
         const options = generateDefaultOptions();

@@ -14,10 +14,12 @@ import getTTLGenerator from './getTTLGenerator';
  * @param  {Function} [options.key] Function to generate the cache key.
  *                                  Receives the arguments passed to the original function.
  *                                  Defaults to a function that generates a hash from the arguments.
+ * @param  {Function} [options.regenerateIf] Function to specify that the cached value should be
+ *                                           ignored. Receives the function arguments.
  * @return {Function}
  */
 export default function makeCacheable(fn, options) {
-  const { cacheClient, segment } = options;
+  const { cacheClient, segment, regenerateIf } = options;
 
   const generateTtl = getTTLGenerator(options);
   const generateKey = getKeyGenerator(options);
@@ -36,13 +38,20 @@ export default function makeCacheable(fn, options) {
   function cachedFunction(...args) {
     return new Promise((resolve, reject) => {
       const id = generateKey(...args);
-      policy.get({ id, args }, (err, value) => {
+      const shouldRegenerate = regenerateIf && regenerateIf(...args);
+      const getFromPolicy = () => policy.get({ id, args }, (err, value) => {
         if (err) {
           return reject(err);
         }
 
         resolve(value);
       });
+
+      if (shouldRegenerate) {
+        return policy.drop(id, getFromPolicy);
+      }
+
+      getFromPolicy();
     });
   }
 
