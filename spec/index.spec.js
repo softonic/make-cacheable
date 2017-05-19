@@ -21,12 +21,16 @@ function createFakeCacheClient({ fakeCacheGet, fakeCacheSet, cached } = {}) {
   // We need segments to be valid in order to test
   cacheClient.validateSegmentName.and.returnValue(null);
 
-  const cachedValue = cached ? { item: cached } : cached;
+  let dropped = false;
+  const cachedValue = cached && !dropped ? { item: cached } : null;
   /* eslint-disable no-param-reassign */
   fakeCacheGet = fakeCacheGet || ((key, callback) => callback(null, cachedValue));
   fakeCacheSet = fakeCacheSet || ((key, value, ttl, callback) => callback());
   /* eslint-enable */
-  const fakeCacheDrop = (key, callback) => callback();
+  const fakeCacheDrop = (key, callback) => {
+    dropped = true;
+    callback();
+  };
 
   cacheClient.get.and.callFake(fakeCacheGet);
   cacheClient.set.and.callFake(fakeCacheSet);
@@ -91,6 +95,68 @@ describe('makeCacheable(method, options)', () => {
       const cachedFn = makeCacheable(() => {}, options);
       const returnValue = cachedFn();
       expect(returnValue).toEqual(jasmine.any(Promise));
+    });
+
+    describe('when passing a `regenerateIf` option', () => {
+      it('should be called with the received arguments', () => {
+        const options = generateDefaultOptions();
+        options.regenerateIf = jasmine.createSpy('regenerateIf');
+
+        const expectedResult = { foo: 'bar' };
+        options.cacheClient = createFakeCacheClient({ cached: expectedResult });
+
+        const fn = () => {};
+        const cachedFn = makeCacheable(fn, options);
+
+        const args = [1, 'foo'];
+        cachedFn(...args);
+
+        expect(options.regenerateIf).toHaveBeenCalledWith(...args);
+      });
+
+      describe('when it returns true', () => {
+        it('should drop the item from the cache', done => {
+          const options = generateDefaultOptions();
+          options.regenerateIf = () => true;
+
+          const expectedResult = { foo: 'bar' };
+          options.cacheClient = createFakeCacheClient({ cached: expectedResult });
+
+          const fn = () => {};
+          const cachedFn = makeCacheable(fn, options);
+
+          const key = getKeyGenerator(options)('foo', 'bar');
+          const returnValue = cachedFn('foo', 'bar');
+
+          returnValue.then(() => {
+            expect(options.cacheClient.drop).toHaveBeenCalledWith(
+              { segment: options.segment, id: key },
+              jasmine.any(Function)
+            );
+            done();
+          }, done.fail);
+        });
+      });
+
+      describe('when it returns false', () => {
+        it('should NOT drop the item from the cache', done => {
+          const options = generateDefaultOptions();
+          options.regenerateIf = () => false;
+
+          const expectedResult = { foo: 'bar' };
+          options.cacheClient = createFakeCacheClient({ cached: expectedResult });
+
+          const fn = () => {};
+          const cachedFn = makeCacheable(fn, options);
+
+          const returnValue = cachedFn('foo', 'bar');
+
+          returnValue.then(() => {
+            expect(options.cacheClient.drop).not.toHaveBeenCalled();
+            done();
+          }, done.fail);
+        });
+      });
     });
 
     describe('when the value IS cached', () => {

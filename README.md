@@ -35,6 +35,9 @@ const cachedFunction = makeCacheable(hardToComputeFunction, {
   ttlRandomFactor: 0.5, // TTL = ttl +- ttl * ttlRandomFactor
   key: (param1, param2) => {
     return 'unique-cache-key-for-the-received-params';
+  },
+  regenerateIf: (param1, param2) => {
+    return param1 === 'always refresh cache for this value';
   }
 });
 
