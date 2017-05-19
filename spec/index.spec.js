@@ -21,16 +21,12 @@ function createFakeCacheClient({ fakeCacheGet, fakeCacheSet, cached } = {}) {
   // We need segments to be valid in order to test
   cacheClient.validateSegmentName.and.returnValue(null);
 
-  let dropped = false;
-  const cachedValue = cached && !dropped ? { item: cached } : null;
+  const cachedValue = cached ? { item: cached } : cached;
   /* eslint-disable no-param-reassign */
   fakeCacheGet = fakeCacheGet || ((key, callback) => callback(null, cachedValue));
   fakeCacheSet = fakeCacheSet || ((key, value, ttl, callback) => callback());
   /* eslint-enable */
-  const fakeCacheDrop = (key, callback) => {
-    dropped = true;
-    callback();
-  };
+  const fakeCacheDrop = (key, callback) => callback();
 
   cacheClient.get.and.callFake(fakeCacheGet);
   cacheClient.set.and.callFake(fakeCacheSet);
