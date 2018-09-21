@@ -25,47 +25,33 @@ export default function makeCacheable(fn, options) {
   const generateKey = getKeyGenerator(options);
 
   const policy = new catbox.Policy({
-    generateFunc({ id, args }, next) {
-      const wrapped = new Promise(resolve => resolve(fn(...args)));
-      const ttl = generateTtl(...args);
-      wrapped.then(result => next(null, result, ttl), next);
+    async generateFunc({ args }, flags) {
+      flags.ttl = generateTtl(...args);
+      return fn(...args);
     },
     generateTimeout: false,
     // An error in the generate function does NOT remove the value from cache
     dropOnError: false
   }, cacheClient, segment);
 
-  function cachedFunction(...args) {
-    return new Promise((resolve, reject) => {
-      const id = generateKey(...args);
-      const shouldRegenerate = regenerateIf && regenerateIf(...args);
-      const getFromPolicy = () => policy.get({ id, args }, (err, value) => {
-        if (err) {
-          return reject(err);
-        }
+  async function cachedFunction(...args) {
+    const id = generateKey(...args);
+    const shouldRegenerate = regenerateIf && regenerateIf(...args);
 
-        resolve(value);
-      });
+    if (shouldRegenerate) {
+      await policy.drop(id);
+    }
 
-      if (shouldRegenerate) {
-        return policy.drop(id, getFromPolicy);
-      }
-
-      getFromPolicy();
-    });
+    return policy.get({ id, args });
   }
 
   cachedFunction.setCached = (args, value) => {
-    return new Promise((resolve, reject) => {
-      const key = {
-        segment,
-        id: generateKey(...args)
-      };
-      const ttl = generateTtl(args);
-      cacheClient.set(key, value, ttl, (error) => {
-        return error ? reject(error) : resolve();
-      });
-    });
+    const key = {
+      segment,
+      id: generateKey(...args)
+    };
+    const ttl = generateTtl(args);
+    return cacheClient.set(key, value, ttl);
   };
 
   return cachedFunction;

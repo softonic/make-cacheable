@@ -23,10 +23,10 @@ function createFakeCacheClient({ fakeCacheGet, fakeCacheSet, cached } = {}) {
 
   const cachedValue = cached ? { item: cached } : cached;
   /* eslint-disable no-param-reassign */
-  fakeCacheGet = fakeCacheGet || ((key, callback) => callback(null, cachedValue));
-  fakeCacheSet = fakeCacheSet || ((key, value, ttl, callback) => callback());
+  fakeCacheGet = fakeCacheGet || (() => Promise.resolve(cachedValue));
+  fakeCacheSet = fakeCacheSet || (() => Promise.resolve());
   /* eslint-enable */
-  const fakeCacheDrop = (key, callback) => callback();
+  const fakeCacheDrop = () => Promise.resolve();
 
   cacheClient.get.and.callFake(fakeCacheGet);
   cacheClient.set.and.callFake(fakeCacheSet);
@@ -83,7 +83,7 @@ describe('makeCacheable(method, options)', () => {
       expect(cacheClient.get).toHaveBeenCalledWith({
         segment: expectedSegment,
         id: expectedId
-      }, jasmine.any(Function));
+      });
     });
 
     it('should return a promise', () => {
@@ -111,7 +111,7 @@ describe('makeCacheable(method, options)', () => {
       });
 
       describe('when it returns true', () => {
-        it('should drop the item from the cache', done => {
+        it('should drop the item from the cache', (done) => {
           const options = generateDefaultOptions();
           options.regenerateIf = () => true;
 
@@ -126,8 +126,7 @@ describe('makeCacheable(method, options)', () => {
 
           returnValue.then(() => {
             expect(options.cacheClient.drop).toHaveBeenCalledWith(
-              { segment: options.segment, id: key },
-              jasmine.any(Function)
+              { segment: options.segment, id: key }
             );
             done();
           }, done.fail);
@@ -135,7 +134,7 @@ describe('makeCacheable(method, options)', () => {
       });
 
       describe('when it returns false', () => {
-        it('should NOT drop the item from the cache', done => {
+        it('should NOT drop the item from the cache', (done) => {
           const options = generateDefaultOptions();
           options.regenerateIf = () => false;
 
@@ -156,7 +155,7 @@ describe('makeCacheable(method, options)', () => {
     });
 
     describe('when the value IS cached', () => {
-      it('should return a promise that resolves with it', done => {
+      it('should return a promise that resolves with it', (done) => {
         const options = generateDefaultOptions();
 
         const expectedResult = { foo: 'bar' };
@@ -167,7 +166,7 @@ describe('makeCacheable(method, options)', () => {
 
         const returnValue = cachedFn('foo', 'bar');
 
-        returnValue.then(result => {
+        returnValue.then((result) => {
           expect(result).toBe(expectedResult);
           done();
         }, done.fail);
@@ -175,7 +174,7 @@ describe('makeCacheable(method, options)', () => {
     });
 
     describe('when the value is NOT cached', () => {
-      it('should call the original function with the same parameters', done => {
+      it('should call the original function with the same parameters', (done) => {
         const options = generateDefaultOptions();
 
         const fn = (...args) => {
@@ -187,7 +186,7 @@ describe('makeCacheable(method, options)', () => {
         cachedFn('foo', 'bar');
       });
 
-      it('should return a promise that resolves with its result', done => {
+      it('should return a promise that resolves with its result', (done) => {
         const options = generateDefaultOptions();
 
         const expectedResult = { foo: 'bar' };
@@ -195,13 +194,13 @@ describe('makeCacheable(method, options)', () => {
         const cachedFn = makeCacheable(fn, options);
 
         const returnValue = cachedFn('foo', 'bar');
-        returnValue.then(result => {
+        returnValue.then((result) => {
           expect(result).toBe(expectedResult);
           done();
         }, done.fail);
       });
 
-      it('should cache the result', done => {
+      it('should cache the result', (done) => {
         const options = generateDefaultOptions();
 
         const expectedResult = { foo: 'bar' };
@@ -254,11 +253,7 @@ describe('makeCacheable(method, options)', () => {
         const fn = () => {};
 
         const options = generateDefaultOptions();
-        options.cacheClient = createFakeCacheClient({
-          fakeCacheSet(key, value, ttl, callback) {
-            callback();
-          }
-        });
+        options.cacheClient = createFakeCacheClient();
 
         const cachedFn = makeCacheable(fn, options);
 
@@ -272,9 +267,7 @@ describe('makeCacheable(method, options)', () => {
 
         const options = generateDefaultOptions();
         options.cacheClient = createFakeCacheClient({
-          fakeCacheSet(key, value, ttl, callback) {
-            callback(cacheError);
-          }
+          fakeCacheSet: () => Promise.reject(cacheError)
         });
 
         const cachedFn = makeCacheable(fn, options);
