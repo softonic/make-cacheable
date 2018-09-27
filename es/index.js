@@ -39,7 +39,7 @@ export default function makeCacheable(fn, options) {
     const shouldRegenerate = regenerateIf && regenerateIf(...args);
 
     if (shouldRegenerate) {
-      await policy.drop(id);
+      await policy.drop(id).catch(() => {});
     }
 
     return policy.get({ id, args });

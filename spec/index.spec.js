@@ -13,7 +13,12 @@ import getKeyGenerator from '../es/getKeyGenerator';
  *                                   for the client
  * @return {catbox.Client}
  */
-function createFakeCacheClient({ fakeCacheGet, fakeCacheSet, cached } = {}) {
+function createFakeCacheClient({
+  fakeCacheGet,
+  fakeCacheSet,
+  fakeCacheDrop,
+  cached
+} = {}) {
   const cacheClient = jasmine.createSpyObj('cacheClient', [
     'get', 'set', 'drop', 'validateSegmentName'
   ]);
@@ -25,8 +30,8 @@ function createFakeCacheClient({ fakeCacheGet, fakeCacheSet, cached } = {}) {
   /* eslint-disable no-param-reassign */
   fakeCacheGet = fakeCacheGet || (() => Promise.resolve(cachedValue));
   fakeCacheSet = fakeCacheSet || (() => Promise.resolve());
+  fakeCacheDrop = fakeCacheDrop || (() => Promise.resolve());
   /* eslint-enable */
-  const fakeCacheDrop = () => Promise.resolve();
 
   cacheClient.get.and.callFake(fakeCacheGet);
   cacheClient.set.and.callFake(fakeCacheSet);
@@ -127,6 +132,26 @@ describe('makeCacheable(method, options)', () => {
           expect(options.cacheClient.drop).toHaveBeenCalledWith(
             { segment: options.segment, id: key }
           );
+        });
+
+        describe('and dropping from the cache fails', () => {
+          it('should go on with the flow', async () => {
+            const options = generateDefaultOptions();
+            options.regenerateIf = () => true;
+
+            const expectedResult = { foo: 'bar' };
+            options.cacheClient = createFakeCacheClient({
+              cached: expectedResult,
+              fakeCacheDrop: () => Promise.reject()
+            });
+
+            const fn = () => { };
+            const cachedFn = makeCacheable(fn, options);
+
+            await cachedFn('foo', 'bar');
+
+            expect(options.cacheClient.get).toHaveBeenCalled();
+          });
         });
       });
 
