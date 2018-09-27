@@ -15,7 +15,7 @@ npm install make-cacheable
 // const makeCacheable = require('make-cacheable');
 
 // ES6
-import makeCacheable from 'make-cacheable/es';
+import makeCacheable from 'make-cacheable';
 
 import catbox from 'catbox';
 
@@ -41,15 +41,24 @@ const cachedFunction = makeCacheable(hardToComputeFunction, {
   }
 });
 
-cachedFunction(param1, param2).then(result => {
-  // Cached!
-});
+(async function() {
+
+  await cacheClient.start();
+
+  const result = await cachedFunction(2,3);
+  // result cached!
+
+})();
 
 // You can also cache values on demand
-cachedFunction.setCached([param1, param2], value).then(() => {
-  // Cached!
-});
-```
+(async function() {
+
+  await cacheClient.start();
+
+  await cachedFunction.setCached([param1, param2], value);
+  // cached function when called with [param1, param2]
+
+})();
 
 ## Testing
 
