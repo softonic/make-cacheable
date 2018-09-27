@@ -111,7 +111,7 @@ describe('makeCacheable(method, options)', () => {
       });
 
       describe('when it returns true', () => {
-        it('should drop the item from the cache', (done) => {
+        it('should drop the item from the cache', async () => {
           const options = generateDefaultOptions();
           options.regenerateIf = () => true;
 
@@ -122,19 +122,16 @@ describe('makeCacheable(method, options)', () => {
           const cachedFn = makeCacheable(fn, options);
 
           const key = getKeyGenerator(options)('foo', 'bar');
-          const returnValue = cachedFn('foo', 'bar');
+          await cachedFn('foo', 'bar');
 
-          returnValue.then(() => {
-            expect(options.cacheClient.drop).toHaveBeenCalledWith(
-              { segment: options.segment, id: key }
-            );
-            done();
-          }, done.fail);
+          expect(options.cacheClient.drop).toHaveBeenCalledWith(
+            { segment: options.segment, id: key }
+          );
         });
       });
 
       describe('when it returns false', () => {
-        it('should NOT drop the item from the cache', (done) => {
+        it('should NOT drop the item from the cache', async () => {
           const options = generateDefaultOptions();
           options.regenerateIf = () => false;
 
@@ -144,18 +141,15 @@ describe('makeCacheable(method, options)', () => {
           const fn = () => {};
           const cachedFn = makeCacheable(fn, options);
 
-          const returnValue = cachedFn('foo', 'bar');
+          await cachedFn('foo', 'bar');
 
-          returnValue.then(() => {
-            expect(options.cacheClient.drop).not.toHaveBeenCalled();
-            done();
-          }, done.fail);
+          expect(options.cacheClient.drop).not.toHaveBeenCalled();
         });
       });
     });
 
     describe('when the value IS cached', () => {
-      it('should return a promise that resolves with it', (done) => {
+      it('should return a promise that resolves with it', async () => {
         const options = generateDefaultOptions();
 
         const expectedResult = { foo: 'bar' };
@@ -164,12 +158,9 @@ describe('makeCacheable(method, options)', () => {
         const fn = () => {};
         const cachedFn = makeCacheable(fn, options);
 
-        const returnValue = cachedFn('foo', 'bar');
+        const returnValue = await cachedFn('foo', 'bar');
 
-        returnValue.then((result) => {
-          expect(result).toBe(expectedResult);
-          done();
-        }, done.fail);
+        expect(returnValue).toBe(expectedResult);
       });
     });
 
@@ -186,18 +177,16 @@ describe('makeCacheable(method, options)', () => {
         cachedFn('foo', 'bar');
       });
 
-      it('should return a promise that resolves with its result', (done) => {
+      it('should return a promise that resolves with its result', async () => {
         const options = generateDefaultOptions();
 
         const expectedResult = { foo: 'bar' };
         const fn = () => expectedResult;
         const cachedFn = makeCacheable(fn, options);
 
-        const returnValue = cachedFn('foo', 'bar');
-        returnValue.then((result) => {
-          expect(result).toBe(expectedResult);
-          done();
-        }, done.fail);
+        const returnValue = await cachedFn('foo', 'bar');
+
+        expect(returnValue).toBe(expectedResult);
       });
 
       it('should cache the result', (done) => {
@@ -249,15 +238,15 @@ describe('makeCacheable(method, options)', () => {
         cachedFn.setCached([{ foo: 'bar' }, 123], { id: 'softonic' });
       });
 
-      it('should return a promise that resolves when the value has been cached', (done) => {
+      it('should return a promise that resolves when the value has been cached', async () => {
         const fn = () => {};
 
         const options = generateDefaultOptions();
         options.cacheClient = createFakeCacheClient();
 
-        const cachedFn = makeCacheable(fn, options);
+        const cachedFn = await makeCacheable(fn, options);
 
-        cachedFn.setCached([{ foo: 'bar' }, 123], { id: 'softonic' }).then(done, done.fail);
+        await cachedFn.setCached([{ foo: 'bar' }, 123], { id: 'softonic' });
       });
 
       it('should return a promise that rejects when with any error caching the value', (done) => {
