@@ -129,9 +129,10 @@ describe('makeCacheable(method, options)', () => {
           const key = getKeyGenerator(options)('foo', 'bar');
           await cachedFn('foo', 'bar');
 
-          expect(options.cacheClient.drop).toHaveBeenCalledWith(
-            { segment: options.segment, id: key }
-          );
+          expect(options.cacheClient.drop).toHaveBeenCalledWith({
+            segment: options.segment,
+            id: key,
+          });
         });
 
         describe('and dropping from the cache fails', () => {
@@ -145,7 +146,7 @@ describe('makeCacheable(method, options)', () => {
               fakeCacheDrop: () => Promise.reject()
             });
 
-            const fn = () => { };
+            const fn = () => {};
             const cachedFn = makeCacheable(fn, options);
 
             await cachedFn('foo', 'bar');
@@ -261,17 +262,6 @@ describe('makeCacheable(method, options)', () => {
         const cachedFn = makeCacheable(fn, options);
 
         cachedFn.setCached([{ foo: 'bar' }, 123], { id: 'softonic' });
-      });
-
-      it('should return a promise that resolves when the value has been cached', async () => {
-        const fn = () => {};
-
-        const options = generateDefaultOptions();
-        options.cacheClient = createFakeCacheClient();
-
-        const cachedFn = await makeCacheable(fn, options);
-
-        await cachedFn.setCached([{ foo: 'bar' }, 123], { id: 'softonic' });
       });
 
       it('should return a promise that rejects when with any error caching the value', (done) => {
