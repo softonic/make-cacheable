@@ -131,7 +131,7 @@ describe('makeCacheable(method, options)', () => {
 
           expect(options.cacheClient.drop).toHaveBeenCalledWith({
             segment: options.segment,
-            id: key,
+            id: key
           });
         });
 
