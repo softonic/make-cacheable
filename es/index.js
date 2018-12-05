@@ -61,18 +61,19 @@ export default function makeCacheable(fn, options) {
     const shouldDrop = dropIf(...args);
 
     if (shouldDrop) {
-      const onDropArgs = {
-        segment,
-        args,
-        id,
-      };
-
       try {
         await policy.drop(id);
-        onDrop(onDropArgs);
+
+        onDrop({
+          segment,
+          args,
+          id,
+        });
       } catch (dropError) {
         onDrop({
-          ...onDropArgs,
+          segment,
+          args,
+          id,
           error: dropError,
         });
       }
