@@ -1,17 +1,21 @@
 {
   "extends": [
-    "airbnb-base",
-    "plugin:jasmine/recommended"
+    "airbnb-base"
   ],
   "plugins": [
-    "jasmine"
+    "jest"
   ],
+  "env": {
+    "node": true,
+    "jest": true
+  },
   "rules": {
-    // Jasmine
-    "jasmine/no-spec-dupes": ["warn", "branch"],
-    "jasmine/no-suite-dupes":  ["warn", "branch"],
+    // unit tests
+    "jest/no-disabled-tests": "error",
+    "jest/no-focused-tests": "error",
+    "jest/no-identical-title": "warn",
 
-    // Best practices
+    // best practices
     "valid-jsdoc": ["warn", {
       "requireReturn": false,
       "requireParamDescription": false,
@@ -21,17 +25,15 @@
         "params": "param"
       }
     }],
-    "complexity": ["warn", 7], // Warn about excessive complexity
-    "no-param-reassign": ["error", { "props": false }], // To enable request.params.something = ...;
-    "no-underscore-dangle": ["error", { "allowAfterThis": true }], // To enable this._p = 'value';
+    "complexity": ["warn", 7],
+    "no-underscore-dangle": ["error", { "allowAfterThis": true }],
 
-    // Style
-    "object-shorthand": ["error", "always", { "avoidQuotes": true }],
-    "quote-props": ["error", "consistent"], // All quotes or no quotes in a single object
-    "comma-dangle": ["warn", "never"], // Disallow trailing comma in the last element of a list
-    "padded-blocks": "off", // Allow spaces at the beginning of blocks
-    "newline-per-chained-call": "off", // Allow chaining in a single line: Joi.string().required()
-    "consistent-return": "off", // Allow if (error) { return ... } and no final return
-    "arrow-body-style": "off" // Allow arrow functions with only a return statement
+    // style
+    "arrow-body-style": "off",
+    "object-curly-newline": ["error", {
+        "ObjectExpression": { "consistent": true },
+        "ObjectPattern": { "consistent": true }
+    }],
+    "function-paren-newline": ["error", "consistent"]
   }
 }

@@ -1,23 +1,23 @@
-import getTTLGenerator from '../es/getTTLGenerator';
+import getTTLGenerator from '../getTTLGenerator';
 
 describe('getTTLGenerator({ ttl, ttlRandomFactor })', () => {
   it('should return a function', () => {
-    expect(getTTLGenerator({ ttl: 100, ttlRandomFactor: 0.1 })).toEqual(jasmine.any(Function));
+    expect(getTTLGenerator({ ttl: 100, ttlRandomFactor: 0.1 })).toBeInstanceOf(Function);
   });
 
   describe('the function it returns', () => {
     it('should return a random value in ttl +- ttl * ttlRandomFactor', () => {
       const ttlGenerator = getTTLGenerator({ ttl: 100, ttlRandomFactor: 0.1 });
 
-      spyOn(Math, 'random');
+      jest.spyOn(Math, 'random');
 
-      Math.random.and.returnValue(0);
+      Math.random.mockReturnValue(0);
       expect(ttlGenerator()).toBe(90);
 
-      Math.random.and.returnValue(0.5);
+      Math.random.mockReturnValue(0.5);
       expect(ttlGenerator()).toBe(100);
 
-      Math.random.and.returnValue(1);
+      Math.random.mockReturnValue(1);
       expect(ttlGenerator()).toBe(110);
     });
 

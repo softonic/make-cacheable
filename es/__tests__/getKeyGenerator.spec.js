@@ -1,18 +1,18 @@
 import objectHash from 'object-hash';
-import getKeyGenerator from '../es/getKeyGenerator';
+import getKeyGenerator from '../getKeyGenerator';
 
 describe('getKeyGenerator({ key } = {})', () => {
   describe('when key is a function', () => {
     it('should return a function', () => {
       const generator = getKeyGenerator({
-        key: () => {}
+        key: () => {},
       });
-      expect(generator).toEqual(jasmine.any(Function));
+      expect(generator).toBeInstanceOf(Function);
     });
 
     describe('the returned function', () => {
       it('should forward its parameters to the key function', () => {
-        const key = jasmine.createSpy('key').and.returnValue('foo');
+        const key = jest.fn(() => 'foo');
 
         const keyGenerator = getKeyGenerator({ key });
 
@@ -49,7 +49,7 @@ describe('getKeyGenerator({ key } = {})', () => {
 
   describe('when key is NOT defined', () => {
     it('should return a function', () => {
-      expect(getKeyGenerator()).toEqual(jasmine.any(Function));
+      expect(getKeyGenerator()).toBeInstanceOf(Function);
     });
 
     describe('the returned function', () => {
