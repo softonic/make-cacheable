@@ -3,6 +3,8 @@ import catbox from 'catbox';
 import getKeyGenerator from './getKeyGenerator';
 import getTTLGenerator from './getTTLGenerator';
 
+export { getKeyGenerator, getTTLGenerator };
+
 /**
  * Returns a decorated version of the given function that caches its results
  * @param  {Function} fn Function to cache
