@@ -8,64 +8,108 @@ import getTTLGenerator from './getTTLGenerator';
  * @param  {Function} fn Function to cache
  * @param  {Object} options
  * @param  {catbox.Client} options.cacheClient
- * @param  {string} options.segment Cache segment for the cached values
- * @param  {number|string} options.ttl TTL of the cached values in ms
- * @param  {number} [options.ttlRandomFactor=0] TTL will be in ttl +- ttl * ttlRandomFactor
- * @param  {Function} [options.key] Function to generate the cache key.
- *                                  Receives the arguments passed to the original function.
- *                                  Defaults to a function that generates a hash from the arguments.
- * @param  {Function} [options.regenerateIf] Function to specify that the cached value should be
- *                                           ignored. Receives the function arguments.
+ * @param  {String} options.segment Cache segment for the cached values
+ *
+ * @param  {Function} [options.keyGenerator] Generates the cache key. Receives the arguments passed
+ * to the original function.
+ * @param  {Function} [options.key] See getTTLGenerator.js
+ *
+ * @param  {Function} [options.ttlGenerator] Generates the TTL of the cached values in ms.
+ * @param  {Number|String} [options.ttl] See getTTLGenerator.js
+ * @param  {Number} [options.ttlRandomFactor=0] See getTTLGenerator.js
+ *
+ * @param  {Function} [options.dropIf] Function to specify that the cached value should be
+ * dropped. Receives the function arguments.
+ * @param  {Function} [onMiss] Called when a MISS occurs
+ * @param  {Function} [onHit] Called when a HIT occurs
+ * @param  {Function} [onDrop] Called when a DROP occurs
  * @return {Function}
  */
 export default function makeCacheable(fn, options) {
-  const { cacheClient, segment, regenerateIf } = options;
+  const {
+    cacheClient,
+    segment,
+    keyGenerator = getKeyGenerator(options),
+    ttlGenerator = getTTLGenerator(options),
+    dropIf = () => false,
+    onMiss = () => {},
+    onHit = () => {},
+    onDrop = () => {},
+  } = options;
 
-  const generateTtl = getTTLGenerator(options);
-  const generateKey = getKeyGenerator(options);
-
-  const policy = new catbox.Policy({
-    generateFunc({ id, args }, next) {
-      const wrapped = new Promise(resolve => resolve(fn(...args)));
-      const ttl = generateTtl(...args);
-      wrapped.then(result => next(null, result, ttl), next);
-    },
+  const policyOptions = {
+    //  relative expiration in the number of milliseconds since the item was saved in the cache
+    expiresIn: ttlGenerator(),
+    // generates a new cache item if one is not found in the cache when calling policy.get()
+    generateFunc: async ({ args }) => fn(...args),
+    // no timeouts when calling policy.get() as we already have Axios timeouts
     generateTimeout: false,
-    // An error in the generate function does NOT remove the value from cache
-    dropOnError: false
-  }, cacheClient, segment);
+    // an error in the generate function does NOT remove the value from cache
+    dropOnError: false,
+    // policy.get() will return an object with { value, cached, report }
+    getDecoratedValue: true,
+  };
 
-  function cachedFunction(...args) {
-    return new Promise((resolve, reject) => {
-      const id = generateKey(...args);
-      const shouldRegenerate = regenerateIf && regenerateIf(...args);
-      const getFromPolicy = () => policy.get({ id, args }, (err, value) => {
-        if (err) {
-          return reject(err);
-        }
+  const policy = new catbox.Policy(policyOptions, cacheClient, segment);
 
-        resolve(value);
-      });
+  /**
+   * @param {...*} args
+   * @return {Promise}
+   */
+  const cachedFunction = async (...args) => {
+    const id = keyGenerator(...args);
+    const shouldDrop = dropIf(...args);
 
-      if (shouldRegenerate) {
-        return policy.drop(id, getFromPolicy);
-      }
-
-      getFromPolicy();
-    });
-  }
-
-  cachedFunction.setCached = (args, value) => {
-    return new Promise((resolve, reject) => {
-      const key = {
+    if (shouldDrop) {
+      const onDropArgs = {
         segment,
-        id: generateKey(...args)
+        args,
+        id,
       };
-      const ttl = generateTtl(args);
-      cacheClient.set(key, value, ttl, (error) => {
-        return error ? reject(error) : resolve();
-      });
-    });
+
+      try {
+        await policy.drop(id);
+        onDrop(onDropArgs);
+      } catch (dropError) {
+        onDrop({
+          ...onDropArgs,
+          error: dropError,
+        });
+      }
+    }
+
+    const result = await policy.get({ id, args });
+    const { value, cached } = result;
+
+    const onCallbackArgs = {
+      segment,
+      args,
+      id,
+      result,
+      stats: policy.stats,
+    };
+
+    if (cached) {
+      onHit(onCallbackArgs);
+    } else {
+      onMiss(onCallbackArgs);
+    }
+
+    return value;
+  };
+
+  /**
+   * @param {Array} args
+   * @param {*} value
+   * @return {Promise}
+   */
+  cachedFunction.setCached = async (args, value) => {
+    const key = {
+      segment,
+      id: keyGenerator(...args),
+    };
+    const ttl = ttlGenerator();
+    return cacheClient.set(key, value, ttl);
   };
 
   return cachedFunction;

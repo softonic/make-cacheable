@@ -3,7 +3,8 @@
   "version": "1.3.0",
   "author": "Rubén Norte <ruben.norte@softonic.com>",
   "contributors": [
-    "Marc Mignonsin <marc.mignonsin@softonic.com>"
+    "Marc Mignonsin <marc.mignonsin@softonic.com>",
+    "Natàlia Calvet i Vidal <natalia.calvet@softonic.com"
   ],
   "description": "Decorates functions to make them cacheable with Catbox",
   "license": "Apache-2.0",
@@ -19,9 +20,10 @@
     "index.js"
   ],
   "scripts": {
-    "lint": "eslint es/**/*.js spec/**/*.spec.js",
+    "lint": "eslint es",
     "pretest": "npm run lint",
-    "test": "jasmine",
+    "tdd": "jest --watch",
+    "test": "jest --coverage",
     "prebuild": "npm run test",
     "build": "rm -rf lib && babel es -d lib --source-maps",
     "prerelease": "npm run build",
@@ -30,7 +32,7 @@
     "push": "git push origin master && git push origin --tags"
   },
   "dependencies": {
-    "catbox": "^7.1.1",
+    "catbox": "^10.0.5",
     "ms": "^0.7.1",
     "object-hash": "^1.1.2"
   },
@@ -38,10 +40,30 @@
     "babel-cli": "^6.10.1",
     "babel-preset-es2015": "^6.9.0",
     "babel-register": "^6.9.0",
-    "eslint": "^2.13.1",
-    "eslint-config-airbnb-base": "^3.0.1",
-    "eslint-plugin-import": "^1.9.2",
-    "eslint-plugin-jasmine": "^1.8.1",
-    "jasmine": "^2.4.1"
+    "catbox-memory": "^4.0.1",
+    "eslint": "^5.9.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-jest": "^22.1.2",
+    "jest": "^23.6.0"
+  },
+  "jest": {
+    "notify": true,
+    "verbose": true,
+    "testEnvironment": "node",
+    "testRegex": "/__tests__/.*\\.spec\\.js$",
+    "testPathIgnorePatterns": [
+      "<rootDir>/coverage/",
+      "<rootDir>/lib/",
+      "<rootDir>/node_modules/"
+    ],
+    "collectCoverageFrom": [
+      "es/**/*.js"
+    ],
+    "coverageDirectory": "./coverage",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/__tests__/.*(?!\\.spec\\.js)"
+    ]
   }
 }
