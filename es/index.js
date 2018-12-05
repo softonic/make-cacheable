@@ -61,19 +61,27 @@ export default function makeCacheable(fn, options) {
     const shouldDrop = dropIf(...args);
 
     if (shouldDrop) {
-      onDrop({
+      const onDropArgs = {
         segment,
         args,
         id,
-      });
+      };
 
-      await policy.drop(id);
+      try {
+        await policy.drop(id);
+        onDrop(onDropArgs);
+      } catch (dropError) {
+        onDrop({
+          ...onDropArgs,
+          error: dropError,
+        });
+      }
     }
 
     const result = await policy.get({ id, args });
     const { value, cached } = result;
 
-    const onCallbackParams = {
+    const onCallbackArgs = {
       segment,
       args,
       id,
@@ -82,9 +90,9 @@ export default function makeCacheable(fn, options) {
     };
 
     if (cached) {
-      onHit(onCallbackParams);
+      onHit(onCallbackArgs);
     } else {
-      onMiss(onCallbackParams);
+      onMiss(onCallbackArgs);
     }
 
     return value;

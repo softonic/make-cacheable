@@ -186,6 +186,28 @@ describe('makeCacheable(fn, options)', () => {
 
             expect(cacheClient.drop).toHaveBeenCalledWith({ segment, id });
           });
+
+          describe('when dropping the item from the cache fails', () => {
+            it('should not propagate the error', async () => {
+              const fn = jest.fn();
+              const options = buildTestOptions();
+              const {
+                cacheClient,
+                dropIf,
+              } = options;
+
+              dropIf.mockReturnValue(true);
+              const dropError = new Error('Ooops! Drop error.');
+              jest.spyOn(cacheClient, 'drop').mockRejectedValue(dropError);
+              jest.spyOn(cacheClient, 'get').mockResolvedValue({ item: 'fn-result' });
+
+              const cachedFn = makeCacheable(fn, options);
+
+              const result = cachedFn('foo', 'bar');
+
+              await expect(result).resolves.toBe('fn-result');
+            });
+          });
         });
 
         describe('when returning false', () => {
@@ -296,6 +318,30 @@ describe('makeCacheable(fn, options)', () => {
             segment,
             args: ['foo', 'bar'],
             id,
+          });
+        });
+
+        describe('when there is an error while dropping the item from the cache', () => {
+          it('should call it with the error', async () => {
+            const fn = jest.fn();
+            const options = buildTestOptions();
+            const {
+              cacheClient,
+              dropIf,
+              onDrop,
+            } = options;
+
+            dropIf.mockReturnValue(true);
+            const dropError = new Error('Ooops! Drop error.');
+            jest.spyOn(cacheClient, 'drop').mockRejectedValue(dropError);
+
+            const cachedFn = makeCacheable(fn, options);
+
+            await cachedFn('foo', 'bar');
+
+            await expect(onDrop).toHaveBeenCalledWith(expect.objectContaining({
+              error: dropError,
+            }));
           });
         });
       });
