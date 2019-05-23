@@ -1,4 +1,4 @@
-import catbox from 'catbox';
+import catbox from '@hapi/catbox';
 
 import getKeyGenerator from './getKeyGenerator';
 import getTTLGenerator from './getTTLGenerator';

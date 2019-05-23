@@ -1,4 +1,4 @@
-import CatboxMemory from 'catbox-memory';
+import CatboxMemory from '@hapi/catbox-memory';
 import makeCacheable from '../index';
 
 function buildTestOptions() {
